@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>Mentes Especiais</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f3d2e">
+  <meta name="description" content="Apoio e ferramentas rápidas para a saúde mental. Notificações de apoio, exercícios de respiração e modo crise.">
+  <style>
+    :root{
+      --bg:#0f3d2e;    /* verde escuro (match ao logo) */
+      --accent:#e85c9a;/* rosa do logo */
+      --card: rgba(255,255,255,0.06);
+      --muted:#e6e6e6;
+      --radius:14px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    html,body{height:100%;}
+    body{
+      margin:0;
+      background: linear-gradient(180deg,var(--bg), #0b2d23);
+      color:white;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      display:flex;
+      flex-direction:column;
+      min-height:100vh;
+      font-size:16px;
+    }
+    header{
+      padding:28px 18px 18px;
+      text-align:center;
+    }
+    .logo-title{
+      font-weight:800;
+      letter-spacing:1px;
+      font-size:22px;
+      margin:0;
+    }
+    .logo-title span{ color:var(--accent); }
+    .subtitle{ margin:6px 0 0;color:rgba(255,255,255,0.85); font-size:14px; }
+    main{ padding:12px; flex:1 0 auto; max-width:720px; margin:0 auto; width:100%; box-sizing:border-box; }
+    .card{
+      background:var(--card);
+      padding:14px;
+      border-radius:var(--radius);
+      margin-bottom:12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    h2{ margin:0 0 8px;font-size:16px; }
+    p{ margin:0 0 8px; color:var(--muted); font-size:14px; }
+    .btn{
+      display:inline-block;
+      width:100%;
+      border:0;
+      padding:12px;
+      border-radius:12px;
+      background:linear-gradient(90deg,var(--accent), #d84b87);
+      color:white;
+      font-weight:700;
+      font-size:15px;
+      cursor:pointer;
+    }
+    .small-btn{
+      padding:8px 10px;
+      font-size:14px;
+      border-radius:10px;
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.08);
+      color:white;
+    }
+    textarea, select, input[type="text"]{
+      width:100%;
+      box-sizing:border-box;
+      padding:10px;
+      border-radius:10px;
+      border:0;
+      outline:none;
+      resize:vertical;
+      background:rgba(255,255,255,0.02);
+      color:white;
+      font-size:14px;
+    }
+    #cta-crise{
+      position:fixed;
+      left:12px;
+      right:12px;
+      bottom:12px;
+      z-index:60;
+      background:linear-gradient(90deg,#e63946,#ff5a60);
+      padding:12px;
+      border-radius:14px;
+      text-align:center;
+      color:white;
+      font-weight:800;
+      box-shadow:0 10px 30px rgba(0,0,0,0.25);
+      text-decoration:none;
+    }
+    .muted{ color:rgba(255,255,255,0.7); font-size:13px; }
+    .entry{ margin-bottom:8px; font-size:13px; }
+    .ts{ color:rgba(255,255,255,0.55); font-size:12px; display:block; margin-bottom:6px;}
+    .row{ display:flex; gap:8px; }
+    .col{ flex:1; }
+    .center{ text-align:center; }
+    /* breathing UI */
+    .breath-circle{
+      width:110px;height:110px;border-radius:999px;margin:12px auto;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,0.03); transition:all 0.7s ease;
+    }
+    .breath-grow{ transform:scale(1.5); transition:all 4s cubic-bezier(.2,.8,.2,1); }
+    /* small footer */
+    footer{ padding:16px;text-align:center;color:rgba(255,255,255,0.6); font-size:13px;}
+    @media(min-width:720px){
+      main{ padding:24px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 class="logo-title">MENTES <span>ESPECIAIS</span></h1>
+    <div class="subtitle">Notificações de apoio • Exercícios de respiração • Modo crise</div>
+  </header>
+
+  <main>
+    <!-- Respiração -->
+    <section class="card" aria-labelledby="resp-title">
+      <h2 id="resp-title">🫁 Exercício de Respiração</h2>
+      <p class="muted">Técnica 4-4-6 — inspira 4s, segura 4s, expira 6s. Repete 4 vezes.</p>
+      <div id="breath" class="breath-circle center" aria-hidden="true">Inspira</div>
+      <div class="row">
+        <div class="col"><button class="btn" id="start-breath">Começar</button></div>
+        <div class="col"><button class="small-btn" id="stop-breath">Parar</button></div>
+      </div>
+    </section>
+
+    <!-- Notificações de apoio (simplesly local) -->
+    <section class="card" aria-labelledby="not-title">
+      <h2 id="not-title">🔔 Notificações de Apoio</h2>
+      <p class="muted">Ativa lembretes diários para um impulso rápido de bem-estar.</p>
+      <div class="row">
+        <input type="time" id="hora-lembranca" value="12:00">
+        <button class="small-btn" id="guardar-hora">Guardar</button>
+      </div>
+      <p id="hora-msg" class="muted" style="margin-top:8px;"></p>
+      <p class="muted" style="margin-top:6px;">(Usa notificações do browser — permite quando for pedido.)</p>
+    </section>
+
+    <!-- Diário -->
+    <section class="card" aria-labelledby="diario-title">
+      <h2 id="diario-title">🗂 Diário Emocional</h2>
+      <p class="muted">Regista um pensamento ou sensação — ajuda a ver padrões.</p>
+      <select id="emocao">
+        <option>😔 Triste</option>
+        <option>😰 Ansioso</option>
+        <option>😡 Frustrado</option>
+        <option>😌 Calmo</option>
+        <option>😊 Feliz</option>
+      </select>
+      <textarea id="texto" rows="4" placeholder="Escreve algo…"></textarea>
+      <div style="margin-top:8px;"><button class="btn" id="guardar">Guardar Entrada</button></div>
+      <div style="margin-top:12px;">
+        <h3 style="margin:0 0 8px 0;font-size:15px">Entradas Recentes</h3>
+        <div id="lista"></div>
+      </div>
+    </section>
+
+    <!-- Modo Crise -->
+    <section class="card" aria-labelledby="crise-title">
+      <h2 id="crise-title">🚨 Modo Crise</h2>
+      <p class="muted">Procedimentos rápidos e contactos essenciais.</p>
+      <div class="card" style="background:rgba(230,100,100,0.06);margin-bottom:8px;">
+        <strong>SNS 24</strong><div class="ts">808 24 24 24</div>
+        <strong>Emergência</strong><div class="ts">112</div>
+        <button class="btn" id="ligar-112">Ligar 112</button>
+      </div>
+      <p class="muted">Sugestões: afasta-te da situação se possível, respira devagar, pede ajuda a alguém conhecido.</p>
+    </section>
+  </main>
+
+  <a id="cta-crise" href="#crise">🚨 Preciso de ajuda agora</a>
+
+  <footer>
+    Desenvolvido para uso pessoal • Guarda os teus dados localmente
+  </footer>
+
+  <script>
+    // --- PWA: regista service worker (se disponível) ---
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js').catch(()=>{/* no-op */});
+    }
+
+    // --- Respiração ---
+    const breathEl = document.getElementById('breath');
+    const startBtn = document.getElementById('start-breath');
+    const stopBtn = document.getElementById('stop-breath');
+    let breathInterval = null;
+    let breathPhase = 0; // 0-inspira,1-segura,2-expira
+    let cycles = 0;
+
+    function setBreathText(t){
+      breathEl.textContent = t;
+    }
+
+    function startBreathing(){
+      if (breathInterval) return;
+      cycles = 0;
+      runCycle();
+      breathInterval = setInterval(runCycle, 14000); // cada 14s faz 4-4-6
+    }
+    function runCycle(){
+      // animação: crescer durante inspiração, ficar, encolher
+      breathEl.classList.remove('breath-grow');
+      setBreathText('Inspira…');
+      setTimeout(()=> { breathEl.classList.add('breath-grow'); setBreathText('Segura…') }, 4000); // depois 4s
+      setTimeout(()=> { breathEl.classList.remove('breath-grow'); setBreathText('Expira…') }, 8000); // depois mais 4s
+      setTimeout(()=> { setBreathText('Pausa'); }, 14000); // fim do ciclo
+      cycles++;
+      if(cycles>=4){ stopBreathing(); } // terminar após 4 repetições por padrão
+    }
+    function stopBreathing(){
+      if(breathInterval){ clearInterval(breathInterval); breathInterval=null; setBreathText('Toca para começar'); breathEl.classList.remove('breath-grow'); }
+    }
+    startBtn.addEventListener('click', startBreathing);
+    stopBtn.addEventListener('click', stopBreathing);
+
+    // --- Diário (localStorage) ---
+    const guardarBtn = document.getElementById('guardar');
+    const listaEl = document.getElementById('lista');
+    function mostrar(){
+      const items = JSON.parse(localStorage.getItem('diario_v1')||'[]');
+      if(items.length===0){ listaEl.innerHTML = '<p class="muted">Sem entradas ainda.</p>'; return; }
+      listaEl.innerHTML = '';
+      items.slice(0,20).forEach(entry=>{
+        const div = document.createElement('div');
+        div.classList.add('entry');
+        div.innerHTML = `<div class="ts">${entry.data} • ${entry.emocao}</div><div>${escapeHtml(entry.texto)}</div><hr style="opacity:.06;margin-top:8px">`;
+        listaEl.appendChild(div);
+      });
+    }
+    function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+    guardarBtn.addEventListener('click', ()=>{
+      const texto = document.getElementById('texto').value.trim();
+      const emocao = document.getElementById('emocao').value;
+      if(!texto){ alert('Escreve algo antes de guardar.'); return; }
+      const items = JSON.parse(localStorage.getItem('diario_v1')||'[]');
+      items.unshift({data: new Date().toLocaleString('pt-PT'), emocao, texto});
+      localStorage.setItem('diario_v1', JSON.stringify(items));
+      document.getElementById('texto').value = '';
+      mostrar();
+    });
+    mostrar();
+
+    // --- Notificações de apoio (simple) ---
+    const horaInput = document.getElementById('hora-lembranca');
+    const guardarHora = document.getElementById('guardar-hora');
+    const horaMsg = document.getElementById('hora-msg');
+
+    function scheduleAlarm(timeStr){
+      // Guardamos preferencia; depois quando a página abrir verificamos se passou e disparamos
+      localStorage.setItem('hora_lembranca', timeStr);
+      horaMsg.textContent = 'Lembrete definido para ' + timeStr + ' todos os dias';
+      // pede permissão e cria um timer simples enquanto a app estiver aberta
+      if(Notification && Notification.permission !== 'granted') {
+        Notification.requestPermission().then(()=>{/* ignore */});
+      }
+    }
+
+    guardarHora.addEventListener('click', ()=>{
+      const t = horaInput.value;
+      if(!t){ alert('Escolhe uma hora.'); return; }
+      scheduleAlarm(t);
+    });
+
+    // check on load
+    (function restoreHora(){
+      const saved = localStorage.getItem('hora_lembranca');
+      if(saved){ horaInput.value = saved; horaMsg.textContent = 'Lembrete definido para ' + saved + ' todos os dias'; }
+    })();
+
+    // Simples verificador que dispara notificação se a hora coincide (apenas se a página estiver aberta)
+    setInterval(()=>{
+      const saved = localStorage.getItem('hora_lembranca');
+      if(!saved) return;
+      const now = new Date();
+      const hh = now.getHours().toString().padStart(2,'0'), mm = now.getMinutes().toString().padStart(2,'0');
+      if(hh+':'+mm === saved){
+        // evitar múltiplas notificações no mesmo minuto
+        const last = localStorage.getItem('last_notif_time') || '';
+        const key = now.toLocaleDateString() + ' ' + hh+':'+mm;
+        if(key === last) return;
+        localStorage.setItem('last_notif_time', key);
+        try{
+          if(Notification && Notification.permission === 'granted'){
+            new Notification('Lembrete • Mentes Especiais', { body: 'Pausa rápida — respira 1 minuto. 🌿' });
+          } else {
+            alert('Lembrete: pausa rápida — respira 1 minuto.');
+          }
+        }catch(e){ console.log(e); }
+      }
+    }, 5000);
+
+    // --- Botão ligar 112 (abrir telefone) ---
+    document.getElementById('ligar-112').addEventListener('click', ()=> {
+      // Em GitHub Pages isto não fará ligação direta no desktop; no telemóvel abre a aplicação telefone
+      window.location.href = 'tel:112';
+    });
+
+    // Pequena melhoria: detectar mobile e informar
+    (function detectMobile(){
+      const ua = navigator.userAgent || '';
+      if(/Mobile|Android|iPhone|iPad/.test(ua)){
+        // mobile detected
+      }
+    })();
+  </script>
+</body>
+</html>
