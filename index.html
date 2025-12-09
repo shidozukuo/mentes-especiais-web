@@ -188,7 +188,7 @@
       <div class="card" style="background:rgba(230,100,100,0.06);margin-bottom:8px;">
         <strong>SNS 24</strong><div class="ts">808 24 24 24</div>
         <strong>Emergência</strong><div class="ts">112</div>
-        <button class="btn" id="ligar-112">Ligar ao Admin</button>
+        <button class="btn" id="ligar-adm">Ligar ao Admin</button>
       </div>
       <p class="muted">Sugestões: afasta-te da situação se possível, respira devagar, pede ajuda a alguém conhecido.</p>
     </section>
@@ -317,7 +317,7 @@
     }, 5000);
 
     // --- Botão ligar 112 (abrir telefone) ---
-    document.getElementById('ligar-112').addEventListener('click', ()=> {
+    document.getElementById('ligar-adm').addEventListener('click', ()=> {
       // Em GitHub Pages isto não fará ligação direta no desktop; no telemóvel abre a aplicação telefone
       window.location.href = 'tel:916440691';
     });
